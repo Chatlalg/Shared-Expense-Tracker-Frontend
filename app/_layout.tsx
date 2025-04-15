@@ -1,9 +1,7 @@
 import './globals.css'
-import { Slot } from "expo-router";
+import { Stack } from "expo-router";
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo'
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { useColorScheme, View, Text, ImageBackground } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import {
   useFonts,
   Montserrat_100Thin,
@@ -42,7 +40,11 @@ export default function RootLayout() {
   
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <Slot />
+      <Stack screenOptions={{headerShown: false, statusBarBackgroundColor:"black"}}>
+        <Stack.Screen name="index"/>
+        <Stack.Screen name="create-group"/>
+        <Stack.Screen name="join-group"/>
+      </Stack>
     </ClerkProvider>
   );
 }
