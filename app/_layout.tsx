@@ -40,7 +40,7 @@ export default function RootLayout() {
   
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <Stack screenOptions={{headerShown: false, statusBarBackgroundColor:"black"}}>
+      <Stack screenOptions={{ headerShown: false, statusBarBackgroundColor:"black"}}>
         <Stack.Screen name="index"/>
         <Stack.Screen name="create-group"/>
         <Stack.Screen name="join-group"/>
