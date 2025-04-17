@@ -3,7 +3,7 @@ import { GroupOperation } from '@/components/GroupOperations'
 import { GroupItem, GroupItemProps } from '@/components/GroupItem';
 import { useEffect, useState } from 'react';
 import { SearchBar as Search } from '@rneui/themed'
-
+import { SignOutButton } from '@/components/SignOutButton';
 
 const Home = () => {
 
@@ -107,8 +107,8 @@ const Home = () => {
   return (
     <View>
       <ImageBackground source={require("../assets/images/home-bg.png")} className='gap-6 px-4' style={{ height: "100%" }}>
-
-        <View style={{paddingVertical:10}}>
+        
+        <View style={{paddingVertical:10}} >
           <Search
             platform="android"
             placeholder="Search groups..."

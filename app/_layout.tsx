@@ -44,6 +44,7 @@ export default function RootLayout() {
         <Stack.Screen name="index"/>
         <Stack.Screen name="create-group"/>
         <Stack.Screen name="join-group"/>
+        <Stack.Screen name="(tabs)"/>
       </Stack>
     </ClerkProvider>
   );
