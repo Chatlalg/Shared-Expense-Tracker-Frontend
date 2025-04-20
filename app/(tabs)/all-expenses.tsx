@@ -1,177 +1,81 @@
 import { Modal, View, Text, ImageBackground, FlatList, TouchableNativeFeedback } from 'react-native'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DataTable } from 'react-native-paper';
 import Entypo from '@expo/vector-icons/Entypo';
+import { useLocalSearchParams } from 'expo-router/build/hooks';
 
 type ExpenseType = {
-  id: string,
-  lender: string,
-  expense: string,
-  amount: Number,
-  date: string
+  username: string,
+  email: string,
+  expense_id: string,
+  amount: number,
+  description: string,
+  pool_id: string,
+  creation_date: string
 }
-
-const sample_data = [
-  {
-    id: "1",
-    lender: "Anooska",
-    expense: "Dosa",
-    amount: 100,
-    date: "24/4/25"
-  },
-  {
-    id: "2",
-    lender: "Ravi",
-    expense: "Pizza",
-    amount: 250,
-    date: "23/4/25"
-  },
-  {
-    id: "3",
-    lender: "Megha",
-    expense: "Movie Tickets",
-    amount: 600,
-    date: "22/4/25"
-  },
-  {
-    id: "4",
-    lender: "Karan",
-    expense: "Groceries",
-    amount: 1200,
-    date: "21/4/25"
-  },
-  {
-    id: "5",
-    lender: "Sneha",
-    expense: "Uber",
-    amount: 340,
-    date: "20/4/25"
-  },
-  {
-    id: "6",
-    lender: "Tanya",
-    expense: "Lunch",
-    amount: 430,
-    date: "19/4/25"
-  },
-  {
-    id: "7",
-    lender: "Aman",
-    expense: "Snacks",
-    amount: 150,
-    date: "18/4/25"
-  },
-  {
-    id: "8",
-    lender: "Neha",
-    expense: "Coffee",
-    amount: 90,
-    date: "17/4/25"
-  },
-  {
-    id: "9",
-    lender: "Ritik",
-    expense: "Metro Card",
-    amount: 200,
-    date: "16/4/25"
-  },
-  {
-    id: "10",
-    lender: "Zoya",
-    expense: "Dinner",
-    amount: 800,
-    date: "15/4/25"
-  },
-  {
-    id: "11",
-    lender: "Laksh",
-    expense: "Milk",
-    amount: 60,
-    date: "14/4/25"
-  },
-  {
-    id: "12",
-    lender: "Priya",
-    expense: "Electricity Bill",
-    amount: 1500,
-    date: "13/4/25"
-  },
-  {
-    id: "13",
-    lender: "Manav",
-    expense: "WiFi Bill",
-    amount: 999,
-    date: "12/4/25"
-  },
-  {
-    id: "14",
-    lender: "Ishaan",
-    expense: "Burger",
-    amount: 180,
-    date: "11/4/25"
-  },
-  {
-    id: "15",
-    lender: "Divya",
-    expense: "Stationery",
-    amount: 220,
-    date: "10/4/25"
-  },
-  {
-    id: "16",
-    lender: "Kabir",
-    expense: "Laundry",
-    amount: 300,
-    date: "9/4/25"
-  },
-  {
-    id: "17",
-    lender: "Ayesha",
-    expense: "Subscription",
-    amount: 499,
-    date: "8/4/25"
-  },
-  {
-    id: "18",
-    lender: "Nikhil",
-    expense: "Ice Cream",
-    amount: 110,
-    date: "7/4/25"
-  },
-  {
-    id: "19",
-    lender: "Sana",
-    expense: "Books",
-    amount: 870,
-    date: "6/4/25"
-  },
-  {
-    id: "20",
-    lender: "Harsh",
-    expense: "Tea",
-    amount: 70,
-    date: "5/4/25"
-  },
-  {
-    id: "21",
-    lender: "Diya",
-    expense: "Medicine",
-    amount: 350,
-    date: "4/4/25"
-  }
-];
 
 
 const Index = () => {
+  const params = useLocalSearchParams();
   const [totalExpense, setTotalExpense] = useState(0)
   const [isRowModalOpen, setIsRowModalOpen] = useState(false)
   const [modalData, setModalData] = useState<ExpenseType>({
-    id: "",
-    lender: "",
-    expense: "",
+    username: "",
+    email: "",
+    expense_id: "",
     amount: 0,
-    date: ""
+    description: "",
+    pool_id: "",
+    creation_date: ""
   })
+  const [allExpenses, setAllExpenses] = useState<ExpenseType[]>()
+
+  useEffect(() => {
+    const fetchAllExpenses = async () => {
+      try {
+        const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/expense/fetchall`, {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pool_id: params.pool_id
+          })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status} in fetching all expenses`);
+        const json = await res.json() as Array<ExpenseType>;
+        const formatted_data = json.map(expense => ({
+          ...expense,
+          creation_date : expense.creation_date.slice(0,10),
+        }))
+        setAllExpenses(formatted_data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    const fetchTotalExpense = async () => {
+      try {
+        const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/expense/totalexpense`, {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pool_id: params.pool_id
+          })
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status} in fetching total expense`)
+        const json = await res.json()
+        setTotalExpense(json?.total_expense)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    fetchTotalExpense()
+    fetchAllExpenses()
+  }, [])
+
   function handleRowPress(item: ExpenseType) {
     console.log(item)
     setModalData(item)
@@ -193,15 +97,15 @@ const Index = () => {
             </DataTable.Header>
             <FlatList
               style={{ height: "92.5%" }}
-              data={sample_data}
+              data={allExpenses}
               renderItem={({ item }) => (
                 <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple("#fff", false)} onPress={handleRowPress.bind(null, item)}>
                   <View>
                     <DataTable.Row>
-                      <DataTable.Cell textStyle={{ color: "white", fontFamily: "Montserrat_500Medium" }} style={{ marginRight: 10 }}>{item.lender}</DataTable.Cell>
-                      <DataTable.Cell textStyle={{ color: "white", fontFamily: "Montserrat_500Medium" }} style={{ minWidth: 90 }}>{item.expense}</DataTable.Cell>
+                      <DataTable.Cell textStyle={{ color: "white", fontFamily: "Montserrat_500Medium" }} style={{ marginRight: 10 }}>{item.username}</DataTable.Cell>
+                      <DataTable.Cell textStyle={{ color: "white", fontFamily: "Montserrat_500Medium" }} style={{ minWidth: 90 }}>{item.description}</DataTable.Cell>
                       <DataTable.Cell textStyle={{ color: "white", fontFamily: "Montserrat_500Medium" }} >{item.amount}</DataTable.Cell>
-                      <DataTable.Cell textStyle={{ color: "white", fontFamily: "Montserrat_500Medium" }} style={{ marginLeft: 10 }}>{item.date}</DataTable.Cell>
+                      <DataTable.Cell textStyle={{ color: "white", fontFamily: "Montserrat_500Medium" }} style={{ marginLeft: 10 }}>{item.creation_date}</DataTable.Cell>
                     </DataTable.Row>
                   </View>
                 </TouchableNativeFeedback>
@@ -222,10 +126,10 @@ const Index = () => {
                   </View>
                 </View>
                 <View className='border-2 items-center' style={{ gap: 10, paddingVertical: 10 }}>
-                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Lender: {`${modalData.lender}`}</Text>
-                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Expense Description: {`${modalData.expense}`}</Text>
+                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Lender: {`${modalData.username}`}</Text>
+                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Expense Description: {`${modalData.description}`}</Text>
                   <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Amount: {`${modalData.amount}`}</Text>
-                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Date: {`${modalData.date}`}</Text>
+                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Date: {`${modalData.creation_date}`}</Text>
                   <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Borrowers: Aditya, Shukla, Atharva</Text>
                 </View>
               </View>

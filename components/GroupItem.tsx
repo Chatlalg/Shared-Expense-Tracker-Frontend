@@ -15,7 +15,12 @@ const GroupItem = (props: GroupItemProps) => {
 
     const handlePress = () => {
         console.log(props.id)
-        router.push("./(tabs)/all-expenses")
+        router.push({
+            pathname: "./(tabs)/all-expenses",
+            params: {
+                pool_id : props.id
+            }
+        })
     }
 
     return (
