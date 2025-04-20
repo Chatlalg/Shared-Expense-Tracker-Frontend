@@ -63,21 +63,15 @@ export default function SignUpScreen() {
       // If verification was completed, set the session to active
       // and redirect the user
       if (signUpAttempt.status === 'complete') {
-        
         try {
           await setActive({ session: signUpAttempt.createdSessionId })
-          const response = await axios.post(`${process.env.SERVER_URL}/register`,
-            {
-              email: emailAddress
-            },
-            {
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              withCredentials: true
-            })
-            console.log(response)
-            router.replace('/')
+          const response = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/user/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: emailAddress,username: username }),
+          });
+          console.log(response)
+          router.replace('/')
         } catch (err) {
           console.log(err)
         }

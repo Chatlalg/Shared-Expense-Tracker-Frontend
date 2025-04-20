@@ -20,6 +20,7 @@ const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+
   let [fontsLoaded] = useFonts({
     Montserrat_100Thin,
     Montserrat_200ExtraLight,
@@ -37,14 +38,14 @@ export default function RootLayout() {
   } else {
     SplashScreen.hideAsync();
   }
-  
+
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <Stack screenOptions={{ headerShown: false, statusBarBackgroundColor:"black"}}>
-        <Stack.Screen name="index"/>
-        <Stack.Screen name="create-group"/>
-        <Stack.Screen name="join-group"/>
-        <Stack.Screen name="(tabs)"/>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="create-group" />
+        <Stack.Screen name="join-group" />
+        <Stack.Screen name="(tabs)" />
       </Stack>
     </ClerkProvider>
   );

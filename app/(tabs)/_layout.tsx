@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router'
-import { StatusBar, Image, View, Text } from 'react-native'
+import { Image, View, Text } from 'react-native'
 export default function Layout() {
-  StatusBar.setBackgroundColor("#000")
+
   return (
     <Tabs screenOptions={{
       headerShown: false,
