@@ -1,8 +1,9 @@
-import { Modal, View, Text, ImageBackground, FlatList, TouchableNativeFeedback } from 'react-native'
-import { useEffect, useState } from 'react'
+import { Modal, View, Text, ImageBackground, FlatList, TouchableNativeFeedback, RefreshControl } from 'react-native'
+import { useEffect, useState, useCallback } from 'react'
 import { DataTable } from 'react-native-paper';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
+import { useFocusEffect } from '@react-navigation/native';
 
 type ExpenseType = {
   username: string,
@@ -14,8 +15,12 @@ type ExpenseType = {
   creation_date: string
 }
 
+type BorrowerType = {
+  username: string,
+  share_amount: number
+}
 
-const Index = () => {
+const AllExpenses = () => {
   const params = useLocalSearchParams();
   const [totalExpense, setTotalExpense] = useState(0)
   const [isRowModalOpen, setIsRowModalOpen] = useState(false)
@@ -29,56 +34,91 @@ const Index = () => {
     creation_date: ""
   })
   const [allExpenses, setAllExpenses] = useState<ExpenseType[]>()
+  const [borrowers, setBorrowers] = useState<BorrowerType[]>([])
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchAllExpenses = async () => {
+    try {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/expense/fetchall`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pool_id: params.pool_id
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} in fetching all expenses`);
+      const json = await res.json() as Array<ExpenseType>;
+      const formatted_data = json.map(expense => ({
+        ...expense,
+        creation_date : expense.creation_date.slice(0,10),
+      }))
+      setAllExpenses(formatted_data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const fetchTotalExpense = async () => {
+    try {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/expense/totalexpense`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pool_id: params.pool_id
+        })
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status} in fetching total expense`)
+      const json = await res.json()
+      setTotalExpense(json?.total_expense || 0)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchAllExpenses(), fetchTotalExpense()]);
+    setRefreshing(false);
+  };
+
+  // Use useFocusEffect to refresh data when tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      onRefresh();
+    }, [])
+  );
 
   useEffect(() => {
-    const fetchAllExpenses = async () => {
-      try {
-        const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/expense/fetchall`, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            pool_id: params.pool_id
-          })
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status} in fetching all expenses`);
-        const json = await res.json() as Array<ExpenseType>;
-        const formatted_data = json.map(expense => ({
-          ...expense,
-          creation_date : expense.creation_date.slice(0,10),
-        }))
-        setAllExpenses(formatted_data)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    const fetchTotalExpense = async () => {
-      try {
-        const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/expense/totalexpense`, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            pool_id: params.pool_id
-          })
-        })
-        if (!res.ok) throw new Error(`HTTP ${res.status} in fetching total expense`)
-        const json = await res.json()
-        setTotalExpense(json?.total_expense)
-      } catch (error) {
-        console.log(error)
-      }
-    }
+    onRefresh();
+  }, []);
 
-    fetchTotalExpense()
-    fetchAllExpenses()
-  }, [])
+  const fetchBorrowers = async (expense_id: string) => {
+    try {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/expense/borrowers`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          expense_id: expense_id
+        })
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status} in fetching borrowers`)
+      const json = await res.json()
+      setBorrowers(json)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   function handleRowPress(item: ExpenseType) {
     console.log(item)
     setModalData(item)
+    fetchBorrowers(item.expense_id)
     setIsRowModalOpen(true)
   }
 
@@ -98,6 +138,13 @@ const Index = () => {
             <FlatList
               style={{ height: "92.5%" }}
               data={allExpenses}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor="#fff"
+                />
+              }
               renderItem={({ item }) => (
                 <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple("#fff", false)} onPress={handleRowPress.bind(null, item)}>
                   <View>
@@ -130,7 +177,12 @@ const Index = () => {
                   <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Expense Description: {`${modalData.description}`}</Text>
                   <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Amount: {`${modalData.amount}`}</Text>
                   <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Date: {`${modalData.creation_date}`}</Text>
-                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Borrowers: Aditya, Shukla, Atharva</Text>
+                  <Text style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>Borrowers:</Text>
+                  {borrowers.map((borrower, index) => (
+                    <Text key={index} style={{ color: "white", fontFamily: "Montserrat_500Medium" }}>
+                      {borrower.username}: ₹{borrower.share_amount}
+                    </Text>
+                  ))}
                 </View>
               </View>
             </View>
@@ -141,5 +193,4 @@ const Index = () => {
   )
 }
 
-
-export default Index
+export default AllExpenses

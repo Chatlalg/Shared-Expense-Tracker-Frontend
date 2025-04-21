@@ -1,6 +1,7 @@
 import { View, Text, TouchableNativeFeedback } from 'react-native'
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type GroupItemProps = {
     id: string,
@@ -8,13 +9,12 @@ type GroupItemProps = {
     members: Number
 }
 
-
-
 const GroupItem = (props: GroupItemProps) => {
     const router = useRouter();
 
-    const handlePress = () => {
+    const handlePress = async () => {
         console.log(props.id)
+        await AsyncStorage.setItem('currentPoolId', props.id.toString());
         router.push({
             pathname: "./(tabs)/all-expenses",
             params: {

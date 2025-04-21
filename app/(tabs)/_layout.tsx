@@ -1,5 +1,7 @@
 import { Tabs } from 'expo-router'
 import { Image, View, Text } from 'react-native'
+import AntDesign from '@expo/vector-icons/AntDesign';
+
 export default function Layout() {
 
   return (
@@ -10,7 +12,7 @@ export default function Layout() {
         height: 70,
         overflow: "hidden",
         paddingTop: 16,
-        backgroundColor:"#3c3d3c",
+        backgroundColor:"#f4f4f4",
         borderWidth:0,
         marginTop:0
       }
@@ -22,9 +24,20 @@ export default function Layout() {
           tabBarIcon: ({ focused }) => (
             <View className='min-w-[112px] flex items-center'>
               <Image source={require("../../assets/icons/wallet.png")} className='w-10 h-10' />
-              <Text style={{ fontFamily: focused? "Montserrat_700Bold":"Montserrat_400Medium", fontSize: 12 }}>All Expenses</Text>
+              
             </View>
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="add-expense"
+        options={{
+          title:"Add Expense",
+          tabBarIcon: ({focused}) => (
+            <View className='min-w-[112px] absolute flex items-center'>
+              <AntDesign name="pluscircleo" size={52} color="black"/>
+            </View>
+          )
         }}
       />
       <Tabs.Screen
@@ -34,7 +47,6 @@ export default function Layout() {
           tabBarIcon: ({ focused }) => (
             <View className='min-w-[112px] flex items-center'>
               <Image source={require("../../assets/icons/pie-graph-split.png")} className='w-10 h-10' />
-              <Text style={{ fontFamily: focused? "Montserrat_700Bold":"Montserrat_400Medium", fontSize: 12 }}>Split</Text>
             </View>
           )
         }}
